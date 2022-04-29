@@ -8,7 +8,7 @@ app.use(cors())
 app.use(express.json())
 
 app.get('/', (req, res)=>{
-    res.send('Connectedd')
+    res.send('Server Is ON')
 })
 
 app.listen(port, ()=>{
