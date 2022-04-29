@@ -1,8 +1,9 @@
 const express = require('express');
+const ObjectId = require('mongodb').ObjectId;
 const cors = require('cors');
-
-const port=process.env.PORT||4000;
-const app=express();
+require('dotenv').config();
+const port = process.env.PORT || 4000;
+const app = express();
 
 app.use(cors())
 app.use(express.json())
@@ -13,25 +14,57 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@mainclu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-async function run(){
-try{
-    client.connect()
-    const itemCollection = client.db("bookathonWarehouse").collection("items");
+async function run() {
+    try {
+        client.connect()
+        const itemCollection = client.db("bookathonWarehouse").collection("items");
 
-    
+        //creating post api for item add
 
-}
-finally{
+        app.post('/items', async (req, res) => {
+            const item = req.body;
+            const items = await itemCollection.insertOne(item);
+            res.send(items);
+        })
 
-}
+        //getting api from items
+
+        app.get('/items', async (req, res) => {
+            const query = {};
+            const cursor = itemCollection.find(query);
+            const items = await cursor.toArray();
+            res.send(items);
+        })
+        //getting api from items for 6 items
+
+        app.get('/items/6', async (req, res) => {
+            const query = {};
+            const cursor = itemCollection.find(query);
+            const items = await cursor.limit(6).toArray();
+            res.send(items);
+        })
+
+        //delete an item api
+
+        app.delete('/deleteItems/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await itemCollection.deleteOne(query);
+            res.send(result);
+        })
+
+    }
+    finally {
+
+    }
 }
 
 run().catch(console.dir)
 
-app.get('/', (req, res)=>{
+app.get('/', (req, res) => {
     res.send('Server Is ON')
 })
 
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log('listening', port);
 })
