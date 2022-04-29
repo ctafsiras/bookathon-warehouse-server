@@ -35,6 +35,15 @@ async function run() {
             const items = await cursor.toArray();
             res.send(items);
         })
+        //getting api for my items
+
+        app.get('/myItems', async (req, res) => {
+            const email=req.query.email;
+            const query = {email};
+            const cursor = itemCollection.find(query);
+            const items = await cursor.toArray();
+            res.send(items);
+        })
         //getting api from items for 6 items
 
         app.get('/items/6', async (req, res) => {
