@@ -1,6 +1,7 @@
 const express = require('express');
 const ObjectId = require('mongodb').ObjectId;
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 4000;
 const app = express();
@@ -18,6 +19,20 @@ async function run() {
     try {
         client.connect()
         const itemCollection = client.db("bookathonWarehouse").collection("items");
+
+
+        //Auth for jwt
+
+        app.post('/login', async (req, res) => {
+
+            const user = req.body;
+            const accessToken = await jwt.sign(user, 'secret', {
+                expiresIn: '30d'
+            });
+            res.send({accessToken})
+
+        })
+
 
         //creating post api for item add
 
