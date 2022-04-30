@@ -6,8 +6,12 @@ require('dotenv').config();
 const port = process.env.PORT || 4000;
 const app = express();
 
+//middleware
+
 app.use(cors())
 app.use(express.json())
+
+//verifying token function
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -20,37 +24,36 @@ const verifyToken = (req, res, next) => {
             return res.status(403).send({ message: 'Forbidden' })
         }
         req.decoded = decoded;
+        next();
     })
-    next();
+
 
 }
 
+//mongodb credential
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@maincluster.znen7.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+//mongodb database connection function
 
 async function run() {
     try {
         client.connect()
         const itemCollection = client.db("bookathonWarehouse").collection("items");
 
-
-        //Auth for jwt
+        //Auth for JWT
 
         app.post('/login', async (req, res) => {
-
             const user = req.body;
             const accessToken = await jwt.sign(user, 'secret', {
                 expiresIn: '30d'
             });
             res.send({ accessToken })
-
         })
 
-
-        //creating post api for item add
+        //creating post api for add item
 
         app.post('/items', async (req, res) => {
             const item = req.body;
@@ -66,6 +69,7 @@ async function run() {
             const items = await cursor.toArray();
             res.send(items);
         })
+
         //getting api for my items
 
         app.get('/myItems', verifyToken, async (req, res) => {
@@ -81,7 +85,8 @@ async function run() {
             }
 
         })
-        //getting api from items for 6 items
+
+        //getting api from items for 6 items in homepage
 
         app.get('/items/6', async (req, res) => {
             const query = {};
@@ -89,6 +94,7 @@ async function run() {
             const items = await cursor.limit(6).toArray();
             res.send(items);
         })
+
         //getting api from items for 1 item for manage update show only
 
         app.get('/items/:id', async (req, res) => {
@@ -98,6 +104,7 @@ async function run() {
             const item = await cursor.toArray();
             res.send(item);
         })
+
         //getting api from items for 1 item for manage update part main
 
         app.put('/items/:id', async (req, res) => {
@@ -125,6 +132,8 @@ async function run() {
 }
 
 run().catch(console.dir)
+
+//default api to check connection
 
 app.get('/', (req, res) => {
     res.send('Server Is ON')
