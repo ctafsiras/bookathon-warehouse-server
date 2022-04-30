@@ -9,6 +9,22 @@ const app = express();
 app.use(cors())
 app.use(express.json())
 
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorized' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, 'secret', (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden' })
+        }
+        req.decoded = decoded;
+    })
+    next();
+
+}
+
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@maincluster.znen7.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -29,7 +45,7 @@ async function run() {
             const accessToken = await jwt.sign(user, 'secret', {
                 expiresIn: '30d'
             });
-            res.send({accessToken})
+            res.send({ accessToken })
 
         })
 
@@ -52,12 +68,18 @@ async function run() {
         })
         //getting api for my items
 
-        app.get('/myItems', async (req, res) => {
+        app.get('/myItems', verifyToken, async (req, res) => {
+            const decodedEmail = req.decoded.mail;
             const email = req.query.email;
-            const query = { email };
-            const cursor = itemCollection.find(query);
-            const items = await cursor.toArray();
-            res.send(items);
+            if (email === decodedEmail) {
+                const query = { email };
+                const cursor = itemCollection.find(query);
+                const items = await cursor.toArray();
+                res.send(items);
+            } else {
+                res.status(403).send({ message: 'Forbidden' })
+            }
+
         })
         //getting api from items for 6 items
 
@@ -83,10 +105,8 @@ async function run() {
             const quantity = req.query.quantity;
             const newQuantity = { $set: { quantity } }
             const query = { _id: ObjectId(id) };
-            console.log(query);
             const result = await itemCollection.updateOne(query, newQuantity);
             res.send(result);
-            console.log(result);
         })
 
         //delete an item api
