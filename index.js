@@ -38,8 +38,8 @@ async function run() {
         //getting api for my items
 
         app.get('/myItems', async (req, res) => {
-            const email=req.query.email;
-            const query = {email};
+            const email = req.query.email;
+            const query = { email };
             const cursor = itemCollection.find(query);
             const items = await cursor.toArray();
             res.send(items);
@@ -51,6 +51,27 @@ async function run() {
             const cursor = itemCollection.find(query);
             const items = await cursor.limit(6).toArray();
             res.send(items);
+        })
+        //getting api from items for 1 item for manage update show only
+
+        app.get('/items/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const cursor = itemCollection.find(query);
+            const item = await cursor.toArray();
+            res.send(item);
+        })
+        //getting api from items for 1 item for manage update part main
+
+        app.put('/items/:id', async (req, res) => {
+            const id = req.params.id;
+            const quantity=req.query.quantity;
+            const newQuantity={$set:{quantity}}
+            const query = { _id: ObjectId(id) };
+            console.log(query);
+            const result = await itemCollection.updateOne(query, newQuantity);
+            res.send(result);
+            console.log(result);
         })
 
         //delete an item api
