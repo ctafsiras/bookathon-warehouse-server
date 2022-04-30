@@ -65,8 +65,8 @@ async function run() {
 
         app.put('/items/:id', async (req, res) => {
             const id = req.params.id;
-            const quantity=req.query.quantity;
-            const newQuantity={$set:{quantity}}
+            const quantity = req.query.quantity;
+            const newQuantity = { $set: { quantity } }
             const query = { _id: ObjectId(id) };
             console.log(query);
             const result = await itemCollection.updateOne(query, newQuantity);
